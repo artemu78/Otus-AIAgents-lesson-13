@@ -9,6 +9,95 @@
         import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
         mermaid.initialize({ startOnLoad: false });
 
+        // State for pan and zoom
+        let scale = 1;
+        let pointX = 0;
+        let pointY = 0;
+        let startX = 0;
+        let startY = 0;
+        let isDragging = false;
+        let container = null;
+        let target = null;
+
+        function setTransform() {
+            if (!target) return;
+            target.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+        }
+
+        window.changeZoom = function(step) {
+            const oldScale = scale;
+            scale += step;
+            if (scale < 0.1) scale = 0.1;
+            if (scale > 10) scale = 10;
+            
+            // Zoom from center when using buttons
+            if (container) {
+                const rect = container.getBoundingClientRect();
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                pointX = centerX - (centerX - pointX) * scale / oldScale;
+                pointY = centerY - (centerY - pointY) * scale / oldScale;
+            }
+            setTransform();
+        };
+
+        window.resetZoom = function() {
+            scale = 1;
+            pointX = 0;
+            pointY = 0;
+            setTransform();
+        };
+
+        function initPanZoom() {
+            container = document.querySelector('.mermaid-container');
+            target = document.querySelector('.mermaid svg');
+            
+            if (!container || !target) return;
+
+            // Reset initial position
+            target.style.transformOrigin = "0 0";
+            resetZoom();
+
+            container.onmousedown = function(e) {
+                e.preventDefault();
+                startX = e.clientX - pointX;
+                startY = e.clientY - pointY;
+                isDragging = true;
+                container.style.cursor = 'grabbing';
+            };
+
+            window.onmouseup = function(e) {
+                isDragging = false;
+                if (container) container.style.cursor = 'grab';
+            };
+
+            container.onmousemove = function(e) {
+                e.preventDefault();
+                if (!isDragging) return;
+                pointX = e.clientX - startX;
+                pointY = e.clientY - startY;
+                setTransform();
+            };
+
+            container.onwheel = function(e) {
+                e.preventDefault();
+                const xs = (e.clientX - pointX) / scale;
+                const ys = (e.clientY - pointY) / scale;
+                const delta = -e.deltaY;
+                
+                const oldScale = scale;
+                (delta > 0) ? (scale *= 1.1) : (scale /= 1.1);
+                
+                if (scale < 0.1) scale = 0.1;
+                if (scale > 10) scale = 10;
+
+                pointX = e.clientX - xs * scale;
+                pointY = e.clientY - ys * scale;
+
+                setTransform();
+            };
+        }
+
         async function renderCJM() {
             try {
                 const response = await fetch('CustomerJourneyMap/CustomerJourneyMap.md');
@@ -17,26 +106,31 @@
                 
                 const contentArea = document.getElementById('content');
                 
-                // Configure marked to handle mermaid code blocks
                 marked.use({
                     renderer: {
                         code(code, lang) {
-                            // In newer marked versions, code might be an object or a string
                             const codeText = typeof code === 'object' ? code.text : code;
                             const codeLang = typeof code === 'object' ? code.lang : lang;
                             
                             if (codeLang === 'mermaid') {
-                                return `<div class="mermaid">${codeText}</div>`;
+                                return `<div class="mermaid-container"><div class="mermaid">${codeText}</div></div>`;
                             }
-                            return false; // fall back to default
+                            return false;
                         }
                     }
                 });
 
                 contentArea.innerHTML = marked.parse(markdown);
 
-                // Initialize mermaid for the newly added content
                 await mermaid.run();
+                
+                // Initialize pan and zoom after mermaid finishes
+                setTimeout(() => {
+                    initPanZoom();
+                    const zoomControls = document.getElementById('zoomControls');
+                    if (zoomControls) zoomControls.style.display = 'flex';
+                }, 100);
+
             } catch (error) {
                 console.error(error);
                 document.getElementById('content').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
@@ -50,7 +144,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
             color: #333;
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 2rem;
             background-color: #f4f4f9;
@@ -61,26 +155,73 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        pre {
-            background: #f0f0f0;
-            padding: 1rem;
+        .mermaid-container {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #eee;
             border-radius: 4px;
-            overflow-x: auto;
-        }
-        code {
-            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+            margin: 2rem 0;
+            overflow: hidden;
+            background: #fafafa;
+            cursor: grab;
+            position: relative;
         }
         .mermaid {
+            width: 100%;
+            height: 100%;
+        }
+        .mermaid svg {
+            cursor: inherit;
+            max-width: none !important;
+        }
+        .header-nav {
             display: flex;
-            justify-content: center;
-            margin: 2rem 0;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            position: sticky;
+            top: 0;
+            background: #f4f4f9;
+            padding: 0.5rem 0;
+            z-index: 100;
+        }
+        .zoom-controls {
+            display: none;
+            gap: 0.5rem;
+            background: white;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .zoom-btn {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .zoom-btn:hover { background-color: #0056b3; }
+        .hint {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+            margin-top: -1.5rem;
+            margin-bottom: 2rem;
         }
     </style>
 </head>
 <body>
-    <div style="margin-bottom: 1rem;">
-        <a href="index.html" style="text-decoration: none; color: #007bff;">&larr; Back to Home</a>
+    <div class="header-nav">
+        <a href="index.html" style="text-decoration: none; color: #007bff; font-weight: 500;">&larr; Back to Home</a>
+        <div class="zoom-controls" id="zoomControls">
+            <button class="zoom-btn" onclick="changeZoom(-0.2)">-</button>
+            <button class="zoom-btn" onclick="resetZoom()">Reset</button>
+            <button class="zoom-btn" onclick="changeZoom(0.2)">+</button>
+        </div>
     </div>
     <div id="content">Loading Customer Journey Map...</div>
+    <p class="hint">Use <b>Mouse Wheel</b> to Zoom and <b>Click & Drag</b> to move the map.</p>
 </body>
 </html>
