@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Journey Map</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: false });
+
+        async function renderCJM() {
+            try {
+                const response = await fetch('CustomerJourneyMap/CustomerJourneyMap.md');
+                if (!response.ok) throw new Error('Failed to load Markdown file');
+                const markdown = await response.text();
+                
+                const contentArea = document.getElementById('content');
+                
+                // Configure marked to handle mermaid code blocks
+                marked.use({
+                    renderer: {
+                        code(code, lang) {
+                            // In newer marked versions, code might be an object or a string
+                            const codeText = typeof code === 'object' ? code.text : code;
+                            const codeLang = typeof code === 'object' ? code.lang : lang;
+                            
+                            if (codeLang === 'mermaid') {
+                                return `<div class="mermaid">${codeText}</div>`;
+                            }
+                            return false; // fall back to default
+                        }
+                    }
+                });
+
+                contentArea.innerHTML = marked.parse(markdown);
+
+                // Initialize mermaid for the newly added content
+                await mermaid.run();
+            } catch (error) {
+                console.error(error);
+                document.getElementById('content').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', renderCJM);
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #f4f4f9;
+        }
+        #content {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        pre {
+            background: #f0f0f0;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div style="margin-bottom: 1rem;">
+        <a href="index.html" style="text-decoration: none; color: #007bff;">&larr; Back to Home</a>
+    </div>
+    <div id="content">Loading Customer Journey Map...</div>
+</body>
+</html>
