@@ -1,33 +1,47 @@
-# Customer Journey Map
+# Customer Journey Map: Knowledge Graph News App
+
+## Путь пользователя
 
 ```mermaid
 journey
-    title Customer Journey
-    section Login
-      User opens app: 5: User
-      User enters credentials: 4: User
-      System authenticates: 4: System
-      User logged in: 5: User
-    section Check data
-      User navigates to dashboard: 4: User
-      User views data: 5: User
-      User analyzes information: 4: User
-    section Logout
-      User clicks logout: 5: User
-      System ends session: 4: System
-      User redirected to login: 5: User
+    title Customer Journey Map: Анализ новостей по AI/LLM
+    section Добавление контента
+      Импорт новостных статей: 5: Разработчик
+      Извлечение понятий и инструментов: 4: Разработчик
+      Сохранение в локальную БД: 5: Разработчик
+    section Работа с графом
+      Визуализация графа связей: 5: Разработчик
+      Навигация по узлам графа: 5: Разработчик
+      Фильтрация по темам/понятиям: 4: Разработчик
+    section Анализ и инсайты
+      Поиск связей между статьями: 5: Разработчик
+      Выявление трендов и инструментов: 5: Разработчик
+      Систематизация знаний: 5: Разработчик
 ```
 
----
+## Маппинг стори
 
-## Login
+| ID | История | Секция | Приоритет |
+|----|---------|--------|-----------|
+| STORY-001 | Импорт новостных статей | Добавление контента | High |
+| STORY-002 | Извлечение понятий и инструментов | Добавление контента | High |
+| STORY-003 | Сохранение в локальную БД | Добавление контента | High |
+| STORY-004 | Визуализация графа связей | Работа с графом | High |
+| STORY-005 | Навигация по узлам графа | Работа с графом | High |
+| STORY-006 | Фильтрация по темам/понятиям | Работа с графом | Medium |
+| STORY-007 | Поиск связей между статьями | Анализ и инсайты | Medium |
+| STORY-008 | Выявление трендов и инструментов | Анализ и инсайты | Low |
+| STORY-009 | Систематизация знаний | Анализ и инсайты | Low |
 
-The customer initiates their journey by accessing the application and providing their authentication credentials. The system validates the user's identity and grants access to the platform.
+## Детали стори
 
-## Check data
-
-Once authenticated, the customer navigates through the application to view and analyze their data. This step represents the core value delivery where users interact with the information they need.
-
-## Logout
-
-After completing their tasks, the customer securely exits the application by terminating their session, ensuring their account remains protected.
+Файлы с детальными критериями приёмки находятся в папке `stories/`:
+- [STORY-001: Импорт статей](stories/01-import-articles.md)
+- [STORY-002: Извлечение понятий](stories/02-extract-concepts.md)
+- [STORY-003: Сохранение в БД](stories/03-save-to-db.md)
+- [STORY-004: Визуализация графа](stories/04-visualize-graph.md)
+- [STORY-005: Навигация по графу](stories/05-navigate-graph.md)
+- [STORY-006: Фильтрация](stories/06-filter-graph.md)
+- [STORY-007: Поиск связей](stories/07-search-connections.md)
+- [STORY-008: Тренды](stories/08-detect-trends.md)
+- [STORY-009: Экспорт](stories/09-knowledge-systematization.md)
