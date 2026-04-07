@@ -1,0 +1,26 @@
+---
+description: Initialize or bootstrap the project per adr.md (stack, DB, API, Ollama)
+alwaysApply: true
+---
+
+# Project initialization (ADR)
+
+When the user asks to **initialize**, **bootstrap**, **set up**, or **scaffold** this repository—or when adding foundational server/client/DB code—treat **`adr.md`** as the single source of architectural truth. Read it first; do not invent an alternate stack unless the user explicitly overrides it.
+
+## Non-negotiables from `adr.md`
+
+- **Shape:** Monolith—Express serves the Vite-built React bundle via `express.static`; one process for dev/prod simplicity.
+- **Stack:** React 18 + Vite (frontend), Express (backend), **SQLite** via **better-sqlite3**, graph UI with **Cytoscape.js**, local **Ollama** at `http://localhost:11434` (models e.g. `llama3.2` / `mistral`).
+- **Database file:** `data/articles.db` (ensure `data/` exists; apply the SQL schema for `articles`, `concepts`, `article_concepts` as in `adr.md`).
+- **API surface:** Implement the REST routes listed under “REST API Endpoints” in `adr.md` (`/api/articles`, `/api/concepts`, `/api/graph`, etc.).
+- **Ollama:** Use JSON output (`format: 'json'`) and the extraction prompt/response shape defined in `adr.md` for analyze flows.
+
+## Initialization checklist
+
+1. Dependencies and scripts match the ADR stack (Vite, React, Express, better-sqlite3, Cytoscape as needed).
+2. Server listens on **port 3000** (per ADR diagram) unless the user changes it consistently in docs and config.
+3. DB initialization creates tables exactly as in `adr.md`; migrations or bootstrap code live next to the server entry.
+4. Frontend layout follows the `src/` component layout in `adr.md` (`ArticleForm`, `GraphView`, `api/articles.js`, etc.) when creating files.
+5. Document for the user: **Ollama must be installed** with a compatible model; app is offline-capable after that.
+
+If `adr.md` and another project doc (e.g. `PLAN.md`) disagree, **prefer `adr.md`** for architecture unless the user says otherwise.
