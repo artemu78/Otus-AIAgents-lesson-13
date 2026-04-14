@@ -16,6 +16,71 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 
+app.post('/api/analyze', async (req, res) => {
+  const { articleText, analysisDirection, model = 'llama3.2' } = req.body ?? {};
+
+  if (!articleText || typeof articleText !== 'string' || !articleText.trim()) {
+    return res.status(400).json({ error: 'articleText is required' });
+  }
+
+  const prompt = `Проанализируй следующую статью и извлеки:
+1. Ключевые понятия (технологии, методы, концепции)
+2. Упомянутые инструменты (библиотеки, фреймворки, сервисы)
+3. Краткое резюме (2-3 предложения)
+4. Тональность (позитивная/нейтральная/негативная)
+5. Анализ с фокусом на направлении: ${analysisDirection || 'общий анализ'}
+
+Формат ответа (JSON):
+{
+  "concepts": ["понятие1", "понятие2"],
+  "tools": ["инструмент1", "инструмент2"],
+  "summary": "краткое резюме",
+  "sentiment": "neutral",
+  "direction_analysis": "вывод по выбранному направлению"
+}
+
+Текст статьи:
+${articleText}`;
+
+  try {
+    const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt,
+        stream: false,
+        format: 'json'
+      })
+    });
+
+    if (!ollamaResponse.ok) {
+      const text = await ollamaResponse.text();
+      return res.status(502).json({
+        error: 'Ollama request failed',
+        details: text
+      });
+    }
+
+    const payload = await ollamaResponse.json();
+    const rawResult = payload?.response ?? '{}';
+
+    let result;
+    try {
+      result = JSON.parse(rawResult);
+    } catch {
+      result = { raw: rawResult };
+    }
+
+    return res.json({ result });
+  } catch (error) {
+    return res.status(500).json({
+      error: 'Failed to analyze article',
+      details: error.message
+    });
+  }
+});
+
 /** Confirms server and DB bootstrap (Фаза 1); REST API comes in Фаза 2. */
 app.get('/api/health', (req, res) => {
   try {
