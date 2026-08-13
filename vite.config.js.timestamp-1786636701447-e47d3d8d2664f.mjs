@@ -1,0 +1,19 @@
+// vite.config.js
+import { defineConfig } from "file:///Users/artemreva/projects/otus/AI_Agents/lessons/13-LiveCoding_Frontend/Otus-AIAgents-lesson-13/node_modules/vite/dist/node/index.js";
+import react from "file:///Users/artemreva/projects/otus/AI_Agents/lessons/13-LiveCoding_Frontend/Otus-AIAgents-lesson-13/node_modules/@vitejs/plugin-react/dist/index.js";
+var vite_config_default = defineConfig({
+  plugins: [react()],
+  server: {
+    port: 5173,
+    proxy: {
+      "/api": "http://localhost:3000"
+    }
+  },
+  build: {
+    outDir: "dist"
+  }
+});
+export {
+  vite_config_default as default
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsidml0ZS5jb25maWcuanMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbImNvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9kaXJuYW1lID0gXCIvVXNlcnMvYXJ0ZW1yZXZhL3Byb2plY3RzL290dXMvQUlfQWdlbnRzL2xlc3NvbnMvMTMtTGl2ZUNvZGluZ19Gcm9udGVuZC9PdHVzLUFJQWdlbnRzLWxlc3Nvbi0xM1wiO2NvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9maWxlbmFtZSA9IFwiL1VzZXJzL2FydGVtcmV2YS9wcm9qZWN0cy9vdHVzL0FJX0FnZW50cy9sZXNzb25zLzEzLUxpdmVDb2RpbmdfRnJvbnRlbmQvT3R1cy1BSUFnZW50cy1sZXNzb24tMTMvdml0ZS5jb25maWcuanNcIjtjb25zdCBfX3ZpdGVfaW5qZWN0ZWRfb3JpZ2luYWxfaW1wb3J0X21ldGFfdXJsID0gXCJmaWxlOi8vL1VzZXJzL2FydGVtcmV2YS9wcm9qZWN0cy9vdHVzL0FJX0FnZW50cy9sZXNzb25zLzEzLUxpdmVDb2RpbmdfRnJvbnRlbmQvT3R1cy1BSUFnZW50cy1sZXNzb24tMTMvdml0ZS5jb25maWcuanNcIjtpbXBvcnQgeyBkZWZpbmVDb25maWcgfSBmcm9tICd2aXRlJztcbmltcG9ydCByZWFjdCBmcm9tICdAdml0ZWpzL3BsdWdpbi1yZWFjdCc7XG5cbmV4cG9ydCBkZWZhdWx0IGRlZmluZUNvbmZpZyh7XG4gIHBsdWdpbnM6IFtyZWFjdCgpXSxcbiAgc2VydmVyOiB7XG4gICAgcG9ydDogNTE3MyxcbiAgICBwcm94eToge1xuICAgICAgJy9hcGknOiAnaHR0cDovL2xvY2FsaG9zdDozMDAwJyxcbiAgICB9LFxuICB9LFxuICBidWlsZDoge1xuICAgIG91dERpcjogJ2Rpc3QnLFxuICB9LFxufSk7XG4iXSwKICAibWFwcGluZ3MiOiAiO0FBQStjLFNBQVMsb0JBQW9CO0FBQzVlLE9BQU8sV0FBVztBQUVsQixJQUFPLHNCQUFRLGFBQWE7QUFBQSxFQUMxQixTQUFTLENBQUMsTUFBTSxDQUFDO0FBQUEsRUFDakIsUUFBUTtBQUFBLElBQ04sTUFBTTtBQUFBLElBQ04sT0FBTztBQUFBLE1BQ0wsUUFBUTtBQUFBLElBQ1Y7QUFBQSxFQUNGO0FBQUEsRUFDQSxPQUFPO0FBQUEsSUFDTCxRQUFRO0FBQUEsRUFDVjtBQUNGLENBQUM7IiwKICAibmFtZXMiOiBbXQp9Cg==
