@@ -26,6 +26,113 @@ app.get('/api/health', (req, res) => {
   }
 });
 
+/** Articles CRUD (T-005 / STORY-001) — parameterized SQL only */
+app.get('/api/articles', (req, res) => {
+  try {
+    const rows = getDb()
+      .prepare(
+        `SELECT id, title, content, source, author, published_date, created_at
+         FROM articles ORDER BY id DESC`,
+      )
+      .all();
+    res.json(rows);
+  } catch {
+    res.status(500).json({ error: 'Failed to list articles' });
+  }
+});
+
+app.get('/api/articles/:id', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) {
+    return res.status(400).json({ error: 'Invalid id' });
+  }
+  try {
+    const row = getDb().prepare('SELECT * FROM articles WHERE id = ?').get(id);
+    if (!row) return res.status(404).json({ error: 'Not found' });
+    res.json(row);
+  } catch {
+    res.status(500).json({ error: 'Failed to load article' });
+  }
+});
+
+function parseArticleBody(body) {
+  const title = typeof body.title === 'string' ? body.title.trim() : '';
+  const content = typeof body.content === 'string' ? body.content : '';
+  const source =
+    body.source == null || body.source === ''
+      ? null
+      : String(body.source).trim() || null;
+  const author =
+    body.author == null || body.author === ''
+      ? null
+      : String(body.author).trim() || null;
+  const published_date =
+    body.published_date == null || body.published_date === ''
+      ? null
+      : String(body.published_date).trim() || null;
+  return { title, content, source, author, published_date };
+}
+
+app.post('/api/articles', (req, res) => {
+  const { title, content, source, author, published_date } = parseArticleBody(req.body || {});
+  if (!title || !content) {
+    return res.status(400).json({ error: 'title and content are required' });
+  }
+
+  try {
+    const db = getDb();
+    const info = db
+      .prepare(
+        `INSERT INTO articles (title, content, source, author, published_date)
+         VALUES (?, ?, ?, ?, ?)`,
+      )
+      .run(title, content, source, author, published_date);
+    const row = db.prepare('SELECT * FROM articles WHERE id = ?').get(info.lastInsertRowid);
+    res.status(201).json(row);
+  } catch {
+    res.status(500).json({ error: 'Failed to save article' });
+  }
+});
+
+app.put('/api/articles/:id', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) {
+    return res.status(400).json({ error: 'Invalid id' });
+  }
+  const { title, content, source, author, published_date } = parseArticleBody(req.body || {});
+  if (!title || !content) {
+    return res.status(400).json({ error: 'title and content are required' });
+  }
+  try {
+    const db = getDb();
+    const info = db
+      .prepare(
+        `UPDATE articles SET title = ?, content = ?, source = ?, author = ?, published_date = ?
+         WHERE id = ?`,
+      )
+      .run(title, content, source, author, published_date, id);
+    if (info.changes === 0) return res.status(404).json({ error: 'Not found' });
+    const row = db.prepare('SELECT * FROM articles WHERE id = ?').get(id);
+    res.json(row);
+  } catch {
+    res.status(500).json({ error: 'Failed to update article' });
+  }
+});
+
+app.delete('/api/articles/:id', (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) {
+    return res.status(400).json({ error: 'Invalid id' });
+  }
+  try {
+    const info = getDb().prepare('DELETE FROM articles WHERE id = ?').run(id);
+    if (info.changes === 0) return res.status(404).json({ error: 'Not found' });
+    res.status(204).end();
+  } catch {
+    res.status(500).json({ error: 'Failed to delete article' });
+  }
+});
+
 if (isProd) {
   const distPath = path.join(rootDir, 'dist');
   if (fs.existsSync(distPath)) {

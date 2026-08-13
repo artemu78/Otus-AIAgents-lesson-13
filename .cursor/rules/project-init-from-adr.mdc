@@ -24,3 +24,7 @@ When the user asks to **initialize**, **bootstrap**, **set up**, or **scaffold**
 5. Document for the user: **Ollama must be installed** with a compatible model; app is offline-capable after that.
 
 If `adr.md` and another project doc (e.g. `PLAN.md`) disagree, **prefer `adr.md`** for architecture unless the user says otherwise.
+
+## Behavior
+
+- Do not write DB scheme until you absolutely sure
