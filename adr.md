@@ -29,8 +29,8 @@ Express сервер раздаёт React-бандл через `express.static`
 ┌─────────────────────────────────────────────────┐
 │              Express Server (port 3000)         │
 │  ┌─────────────┐  ┌────────────────────────┐   │
-│  │  REST API   │  │  Ollama Client         │   │
-│  │  /articles  │  │  (localhost:11434)      │   │
+│  │  REST API   │  │  OpenRouter Client     │   │
+│  │  /articles  │  │  (OpenRouter API)       │   │
 │  │  /concepts  │  │  - analyze article      │   │
 │  │  /graph     │  │  - extract concepts     │   │
 │  └─────────────┘  └────────────────────────┘   │
@@ -52,7 +52,7 @@ Express сервер раздаёт React-бандл через `express.static`
 | Graph Visualization | Cytoscape.js | Специализированная для графов, много layout-алгоритмов |
 | Backend | Express.js | Минималистичный, знакомый стек |
 | Database | SQLite + better-sqlite3 | Локальная БД, синхронный API, простота |
-| AI | Ollama (локально) | Бесплатно, оффлайн, модели: llama3/llama3.2/mistral |
+| AI | OpenRouter | Единый API и доступ к бесплатным моделям через `openrouter/free` |
 
 ### 3. База данных
 **Схема SQLite:**
@@ -94,7 +94,7 @@ GET    /api/articles          # Список статей (с пагинацие
 GET    /api/articles/:id      # Детали статьи
 DELETE /api/articles/:id      # Удалить статью
 
-POST   /api/articles/:id/analyze  # Переанализировать статью через Ollama
+POST   /api/articles/:id/analyze  # Переанализировать статью через OpenRouter
 PUT    /api/articles/:id/concepts # Обновить связи с понятиями
 
 GET    /api/concepts          # Список всех понятий
@@ -103,8 +103,10 @@ GET    /api/concepts/:id      # Понятие со связанными ста�
 GET    /api/graph             # Данные для графа (nodes + edges)
 ```
 
-### 5. Ollama Integration
-**Модель:** llama3.2 или mistral (легковесные, быстрые)
+### 5. OpenRouter Integration
+**Модель:** `openrouter/free` — роутер автоматически выбирает одну из доступных бесплатных моделей. При необходимости можно зафиксировать конкретную бесплатную модель с суффиксом `:free`.
+
+Для доступа требуется API-ключ в переменной окружения `OPENROUTER_API_KEY`. Ключ используется только на Express-сервере и не передаётся во frontend.
 
 **Промпт для извлечения понятий:**
 ```
@@ -126,18 +128,29 @@ GET    /api/graph             # Данные для графа (nodes + edges)
 {article_text}
 ```
 
-**Вызов Ollama:**
+**Вызов OpenRouter:**
 ```javascript
-const response = await fetch('http://localhost:11434/api/generate', {
+const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+    'Content-Type': 'application/json'
+  },
   body: JSON.stringify({
-    model: 'llama3.2',
-    prompt: prompt,
-    stream: false,
-    format: 'json'
+    model: 'openrouter/free',
+    messages: [
+      { role: 'user', content: prompt }
+    ],
+    response_format: { type: 'json_object' }
   })
 });
+
+if (!response.ok) {
+  throw new Error(`OpenRouter request failed: ${response.status}`);
+}
+
+const data = await response.json();
+const analysis = JSON.parse(data.choices[0].message.content);
 ```
 
 ### 6. Frontend Components
@@ -200,10 +213,12 @@ const layout = { name: 'cose', animate: true };
 - Добавление статьи занимает < 30 секунд
 - AI-анализ занимает < 10 секунд
 - Граф загружается < 2 секунд при 100+ статьях
-- Приложение работает полностью оффлайн (после установки Ollama)
+- Приложение работает локально, но для AI-анализа требуется интернет-доступ к OpenRouter
 
 ## Следствия
-- Требуется установленный Ollama с моделью llama3.2/mistral
+- Требуется аккаунт OpenRouter и переменная окружения `OPENROUTER_API_KEY`
+- Используется `openrouter/free`; состав бесплатных моделей, их доступность и лимиты могут меняться
+- Без доступа к OpenRouter сохранённые статьи и граф остаются доступны, но новый AI-анализ не работает
 - База данных хранится в файле `data/articles.db`
 - React-бандл собирается Vite и раздаётся Express
 
@@ -212,5 +227,5 @@ const layout = { name: 'cose', animate: true };
 |-------|--------------|-------------------|
 | SQLite | Neo4j | Избыточен для MVP, сложнее установить |
 | Cytoscape.js | React Flow | Меньше layout-алгоритмов для графов |
-| Ollama | Claude API | Требует API ключ, не оффлайн |
+| OpenRouter | Ollama | Требует локальной установки модели и достаточных ресурсов компьютера |
 | Монолит | Раздельные сервисы | Медленнее разработка MVP |
