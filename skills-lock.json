@@ -6,6 +6,18 @@
       "sourceType": "github",
       "computedHash": "0e75baa1c3159dba4c6db79330634327039c9813410256b73357dcbb0ed9d0ea"
     },
+    "antv-g6-graph": {
+      "source": "antvis/chart-visualization-skills",
+      "sourceType": "github",
+      "skillPath": "skills/antv-g6-graph/SKILL.md",
+      "computedHash": "c7b06c3760d994fe81d27f62edc67554a519a919b9c6e6e82e5c5a81a46bc567"
+    },
+    "e2e-playwright-testing": {
+      "source": "asyrafhussin/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/e2e-playwright-testing/SKILL.md",
+      "computedHash": "ee097dfeaa4d731a35ab47bd930859f17d7d0d073d0df3720435b02d97d12210"
+    },
     "find-skills": {
       "source": "vercel-labs/skills",
       "sourceType": "github",
